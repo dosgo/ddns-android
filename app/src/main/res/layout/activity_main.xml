@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:divider="@android:drawable/divider_horizontal_textfield"
+        android:showDividers="middle">
+
+        <!-- 提供商选择 -->
+        <Spinner
+            android:id="@+id/spProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/dns_providers"
+            android:prompt="@string/select_provider"/>
+
+        <!-- Cloudflare 配置 -->
+        <LinearLayout
+            android:id="@+id/cloudflareConfig"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etApiKey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Cloudflare API Key"/>
+
+            <EditText
+                android:id="@+id/etZoneId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Zone ID"/>
+
+
+        </LinearLayout>
+
+        <!-- DNSPod 配置 -->
+        <LinearLayout
+            android:id="@+id/dnspodConfig"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etApiId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="DNSPod API ID"/>
+
+            <EditText
+                android:id="@+id/etApiToken"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="DNSPod API Token"/>
+        </LinearLayout>
+
+        <!-- 公共配置 -->
+        <EditText
+            android:id="@+id/etDomain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="主域名（如 example.com）"/>
+
+        <EditText
+            android:id="@+id/etSubDomain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="子域名（如 www 或 @）"/>
+
+        <!-- IP 类型选择 -->
+        <CheckBox
+            android:id="@+id/cbIPv4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启用 IPv4"
+            android:checked="true"/>
+
+        <CheckBox
+            android:id="@+id/cbIPv6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启用 IPv6"/>
+
+        <!-- 间隔时间 -->
+        <EditText
+            android:id="@+id/etInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="检查间隔（分钟）"
+            android:inputType="number"/>
+
+        <!-- 操作按钮 -->
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="保存配置"/>
+
+        <Button
+            android:id="@+id/btnToggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="启动服务"/>
+        <Button
+            android:id="@+id/btnClearLogs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="清空日志"/>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/tvLogs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"/>
+
+        </ScrollView>
+
+    </LinearLayout>
+</ScrollView>

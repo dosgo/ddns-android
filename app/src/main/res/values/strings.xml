@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ddns</string>
+    <string name="select_provider">选择 DNS 提供商</string>
+    <array name="dns_providers">
+        <item>Cloudflare</item>
+        <item>DNSPod</item>
+    </array>
+</resources>
