@@ -69,8 +69,13 @@ public class IPUtils {
     }
 
     // 示例：获取第一个可用的 IPv6 地址
-    public static String getFirstIPv6() {
+    public static String getFirstIPv6(String filterIP) {
         List<String> ips =  getLocalIP(Inet6Address.class);
+        for (String ip : ips) {
+            if (!ip.equals(filterIP)||filterIP.isEmpty()) {
+               return ip;
+            }
+        }
         return ips.isEmpty() ? null : ips.get(0);
     }
 

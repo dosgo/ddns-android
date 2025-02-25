@@ -15,7 +15,7 @@ public class DNSPodClient {
     private static final OkHttpClient client = new OkHttpClient();
 
     // 获取 Record ID
-    public static String getRecordId(Config config) throws IOException {
+    public static String getRecordId(Config config,String recordType) throws IOException {
         String url = "https://dnsapi.cn/Record.List";
         FormBody body = new FormBody.Builder()
                 .add("login_token", config.getApiId() + "," + config.getApiToken())
@@ -38,23 +38,23 @@ public class DNSPodClient {
                 JSONObject record = records.getJSONObject(i);
                 String name = record.getString("name");
                 String type = record.getString("type");
-                if (name.equals(config.getSubDomain()) && type.equals(config.getRecordType())) {
+                if (name.equals(config.getSubDomain()) && type.equals(recordType)) {
                     return record.getString("id");
                 }
             }
             return null;
         } catch (JSONException e) {
-            throw new IOException("解析响应失败", e);
+            throw new IOException("Failed to parse response", e);
         }
     }
 
-    public static String updateRecord(Config config, String newIP) throws IOException {
+    public static String updateRecord(Config config, String newIP,String recordType) throws IOException {
 
 
-            String recordId = getRecordId(config);
+            String recordId = getRecordId(config,recordType);
             if (recordId == null) {
 
-                return "没有记录id";
+                return "No record id";
             }
           //  String requestBody1 = new FormBody.Builder().add("ddd","ddd").build().toString()
 
@@ -64,7 +64,7 @@ public class DNSPodClient {
                     .add("domain", config.getDomain())
                     .add("record_id", recordId)
                     .add("sub_domain", config.getSubDomain())
-                    .add("record_type", config.getRecordType())
+                    .add("record_type", recordType)
                     .add("record_line", "默认")
                     .add("value", newIP)
                     .build();

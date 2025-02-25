@@ -1,8 +1,12 @@
 package com.dosgo.ddns;
 
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.work.*;
 import com.google.gson.Gson;
@@ -10,14 +14,15 @@ import okhttp3.*;
 
 import java.net.Inet4Address;
 import java.net.Inet6Address;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
-    private EditText etApiKey, etZoneId, etApiId, etApiToken, etDomain, etSubDomain, etInterval;
-    private CheckBox cbIPv4, cbIPv6;
+    private EditText etApiKey, etZoneId, etApiId, etApiToken, etDomain, etSubDomain;
+    private CheckBox cbIPv4, cbIPv6,ipv6Privacy;
     private Spinner spProvider;
     private Button btnToggle;
     private LinearLayout cloudflareConfig, dnspodConfig;
@@ -61,16 +66,18 @@ public class MainActivity extends AppCompatActivity {
                             if (info.getState() == WorkInfo.State.ENQUEUED ||
                                     info.getState() == WorkInfo.State.RUNNING) {
                                 isRunning = true;
+                                startService();
                                 break;
                             }
                         }
                     }
-                    btnToggle.setText(isRunning ? "停止服务" : "启动服务");
+                    btnToggle.setText(isRunning ? R.string.stopService:  R.string.startService);
                 });
 
         // 按钮点击切换服务状态
         btnToggle.setOnClickListener(v -> {
-            if (btnToggle.getText().toString().contains("启动")) {
+
+            if (btnToggle.getText().toString().equals(getString(R.string.startService))) {
                 startService();
             } else {
                 stopService();
@@ -98,6 +105,51 @@ public class MainActivity extends AppCompatActivity {
         }, 0, 2000);
     }
 
+
+    public static String validateConfig(Config config) {
+        List<String> missingFields = new ArrayList<>();
+
+        // 通用必填字段
+        if (isEmpty(config.getDomain())) missingFields.add("domain");
+        if (isEmpty(config.getSubDomain())) missingFields.add("subDomain");
+
+        // 根据提供商检查专用字段
+        String provider = config.getProvider();
+        if (isEmpty(provider)) {
+            missingFields.add("provider");
+        } else {
+            switch (provider.toLowerCase()) {
+                case "cloudflare":
+                    if (isEmpty(config.getApiKey())) missingFields.add("apiKey");
+                    if (isEmpty(config.getZoneId())) missingFields.add("zoneId");
+                    break;
+
+                case "dnspod":
+                    boolean hasLegacyAuth = !isEmpty(config.getApiId()) && !isEmpty(config.getApiKey());
+                    boolean hasTokenAuth = !isEmpty(config.getApiToken());
+                    if (!hasLegacyAuth && !hasTokenAuth) {
+                        missingFields.add("apiId/apiKey 或 apiToken");
+                    }
+                    break;
+
+                default:
+                    missingFields.add("有效的 provider (cloudflare/dnspod)");
+            }
+        }
+
+        // IPv4/IPv6 至少启用一个
+        if (!config.isEnableIPv4() && !config.isEnableIPv6()) {
+            missingFields.add("enableIPv4 或 enableIPv6");
+        }
+
+        return missingFields.isEmpty() ? null :
+                 String.join(", ", missingFields);
+    }
+
+    private static boolean isEmpty(String str) {
+        return str == null || str.trim().isEmpty();
+    }
+
     private void initViews() {
         spProvider = findViewById(R.id.spProvider);
         cloudflareConfig = findViewById(R.id.cloudflareConfig);
@@ -110,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
         etSubDomain = findViewById(R.id.etSubDomain);
         cbIPv4 = findViewById(R.id.cbIPv4);
         cbIPv6 = findViewById(R.id.cbIPv6);
-        etInterval = findViewById(R.id.etInterval);
+        ipv6Privacy=findViewById(R.id.ipv6Privacy);
     }
 
     private void updateProviderUI(String provider) {
@@ -129,9 +181,8 @@ public class MainActivity extends AppCompatActivity {
         config.setSubDomain(etSubDomain.getText().toString());
         config.setEnableIPv4(cbIPv4.isChecked());
         config.setEnableIPv6(cbIPv6.isChecked());
-        if(!etInterval.getText().toString().equals("")) {
-            config.setIntervalMinutes(Integer.parseInt(etInterval.getText().toString()));
-        }
+        config.setIpv6Privacy(ipv6Privacy.isChecked());
+
 
         // 保存到 SharedPreferences
         getSharedPreferences("ddns_config", MODE_PRIVATE)
@@ -139,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                 .putString("config", new Gson().toJson(config))
                 .apply();
 
-        Toast.makeText(this, "配置已保存", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.saveConfigMsg, Toast.LENGTH_SHORT).show();
     }
 
     private void loadConfig() {
@@ -157,12 +208,13 @@ public class MainActivity extends AppCompatActivity {
             etSubDomain.setText(config.getSubDomain());
             cbIPv4.setChecked(config.isEnableIPv4());
             cbIPv6.setChecked(config.isEnableIPv6());
-            etInterval.setText(String.valueOf(config.getIntervalMinutes()));
+            ipv6Privacy.setChecked(config.isIpv6Privacy());
             updateProviderUI(config.getProvider());
         }
     }
 
     // 启动服务
+    /*
     private void startService() {
         PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(
                 DDNSWorker.class,
@@ -186,14 +238,45 @@ public class MainActivity extends AppCompatActivity {
             LogUtils.appendLog(this, "ipv6:"+ip);
         }
 
-    }
+    }*/
 
     // 停止服务
     private void stopService() {
         LogUtils.appendLog(this, "stopService");
         workManager.cancelUniqueWork("DDNS_Service");
+        this.stopService(new Intent(this, DDNSService.class));
     }
 
+    private void showErrorDialog(String message) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.startfailure)
+                .setMessage(message)
+                .setNegativeButton(getString(R.string.ok), null)
+                .show();
+    }
+
+    private void startService() {
+        String json = getSharedPreferences("ddns_config", MODE_PRIVATE)
+                .getString("config", "");
+        if(json.isEmpty()){
+            showErrorDialog(getString(R.string.configNuLL));
+            return;
+        }
+        Config config = new Gson().fromJson(json, Config.class);
+        String error = validateConfig(config);
+        if (error != null) {
+            showErrorDialog(error);
+            return ;
+        }
+
+
+        Intent serviceIntent = new Intent(this, DDNSService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
+    }
 
     // 刷新日志显示
     private void refreshLogs() {

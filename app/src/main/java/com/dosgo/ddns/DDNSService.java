@@ -1,68 +1,110 @@
-package com.dosgo.ddns;
+package com.dosgo.ddns;// DDNSService.java
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Build;
+import android.os.IBinder;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
-import android.content.Context;
-import android.util.Log;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-import java.io.IOException;
+public class DDNSService extends Service {
 
-public class DDNSService {
-    private static final String TAG = "DDNSService";
-    private static  String currentIP="";
-    private static  String currentIPV6="";
-    public static void checkAndUpdate(Context context) {
-        Config config = PrefsUtil.loadConfig(context);
-        if (config == null) return;
-        LogUtils.appendLog(context, "checkAndUpdate");
-        try {
+    private static final int NOTIFICATION_ID = 1001;
+    private static final String CHANNEL_ID = "ddns_service_channel";
 
-            // 获取当前 IP
-            if (config.isEnableIPv4()) {
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // 初始化操作
+        startWorkManagerTask();
 
-                if(currentIP.isEmpty()){
-                    String oldIP = IPUtils.resolveSingleAddress(config.getSubDomain() + "." + config.getDomain(), false);
-                    if(!oldIP.isEmpty()){
-                        currentIP=oldIP;
-                    }
-                }
-                String newIP = IPUtils.getPublicIP(false);
-                LogUtils.appendLog(context, "new IP:"+newIP);
-                if(!newIP.equals(currentIP)) {
-                    LogUtils.appendLog(context, "update new IP:" + newIP);
-                    String res= updateDNS(config, newIP, "A");
-                    LogUtils.appendLog(context, "update res:" + res);
-                }
+        createNotificationChannel();
+        startForegroundWithNotification();
+    }
+
+
+    private void startForegroundWithNotification() {
+        Notification notification = buildNotification();
+        startForeground(NOTIFICATION_ID, notification);
+    }
+
+    private Notification buildNotification() {
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("ddns service")
+                .setContentText("ddns service runing...")
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true)
+                .build();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "ddns service",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("ddns service");
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
             }
-            if (config.isEnableIPv6()) {
-
-                if(currentIPV6.isEmpty()){
-                    String oldIP = IPUtils.resolveSingleAddress(config.getSubDomain() + "." + config.getDomain(), true);
-                    if(!oldIP.isEmpty()){
-                        currentIPV6=oldIP;
-                    }
-                }
-
-                String newIP = IPUtils.getPublicIP(true);
-                LogUtils.appendLog(context, "new IPV6:" + newIP);
-                if(!newIP.equals(currentIPV6)) {
-                    LogUtils.appendLog(context, "update new IPV6:" + newIP);
-                    String res=updateDNS(config, newIP, "AAAA");
-                    LogUtils.appendLog(context, "update res:" + res);
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "DDNS 更新失败: " + e.getMessage());
-            e.printStackTrace();
-            LogUtils.appendLog(context, "DDNS 更新失败:"+ e.getMessage());
         }
     }
 
-    private static String updateDNS(Config config, String ip, String type) throws IOException {
-        if ("cloudflare".equals(config.getProvider())) {
-           return  CloudflareClient.updateRecord(config, ip);
-        } else if ("dnspod".equals(config.getProvider())) {
-            return  DNSPodClient.updateRecord(config, ip);
-        }
 
-        return "dns type config error";
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // 启动 WorkManager 任务
+
+        
+        // 保持服务运行（根据需求选择不同返回值）
+        return START_STICKY;
+    }
+
+    private void startWorkManagerTask() {
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(
+                DDNSWorker.class,
+                15, // 默认间隔 15 分钟
+                TimeUnit.MINUTES
+        ).build();
+        WorkManager workManager = WorkManager.getInstance(this);
+        workManager.enqueueUniquePeriodicWork(
+                "DDNS_Service",
+                ExistingPeriodicWorkPolicy.REPLACE,
+                request
+        );
+        LogUtils.appendLog(this, "startService");
+        List<String> ips =IPUtils.getLocalIP(Inet4Address.class);
+        for (String ip :ips) {
+            LogUtils.appendLog(this, "ip:"+ip);
+        }
+        List<String> ipsv6 =IPUtils.getLocalIP(Inet6Address.class);
+        for (String ip :ipsv6) {
+            LogUtils.appendLog(this, "ipv6:"+ip);
+        }
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null; // 本例不需要绑定服务
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // 清理资源
     }
 }

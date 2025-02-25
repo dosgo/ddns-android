@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">ddns</string>
+    <string name="select_provider">选择 DNS 提供商</string>
+    <string name="saveConfig">保存配置</string>
+    <string name="saveConfigMsg">配置已保存</string>
+    <string name="configNuLL">配置不存在</string>
+    <string name="clearLog">清空日志</string>
+    <string name="startService">启动服务</string>
+    <string name="stopService">停止服务</string>
+    <string name="domainDesc">主域名（如 example.com）</string>
+    <string name="subDomainDesc">子域名（如 www 或 @）</string>
+    <string name="enableIPV4">启用 IPV4</string>
+    <string name="enableIPV6">启用 IPV6</string>
+    <string name="enablePrivacy">使用隐私地址(IPV6)</string>
+    <string name="startfailure">启动失败</string>
+    <string name="ok">确定</string>
+    <string name="fieldMissing">缺少必要字段</string>
+    <array name="dns_providers">
+        <item>Cloudflare</item>
+        <item>DNSPod</item>
+    </array>
+</resources>

@@ -13,7 +13,7 @@ public class DDNSWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        DDNSService.checkAndUpdate(getApplicationContext());
+        DDNSTool.checkAndUpdate(getApplicationContext());
         return Result.success();
     }
 }

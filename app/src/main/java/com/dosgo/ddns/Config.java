@@ -3,20 +3,20 @@ package com.dosgo.ddns;
 public class Config {
     private String provider;       // cloudflare/dnspod
     private String apiKey;         // Cloudflare API Key 或 DNSPod API Token
+
     private String apiId;          // DNSPod 专用 API ID
     private String domain;         // 要更新的域名（如 example.com）
     private String subDomain;      // 子域名（如 @ 或 www）
-    private String recordType;     // A/AAAA
     private boolean enableIPv4;
     private boolean enableIPv6;
-    private int intervalMinutes;
+
+
+    private boolean ipv6Privacy;
 
     private String apiToken;       // DNSPod API Token
 
     // Cloudflare 专用字段
     private String zoneId;         // Cloudflare Zone ID
-
-
 
 
 
@@ -36,21 +36,7 @@ public class Config {
         this.enableIPv6 = enableIPv6;
     }
 
-    public int getIntervalMinutes() {
-        return intervalMinutes;
-    }
 
-    public void setIntervalMinutes(int intervalMinutes) {
-        this.intervalMinutes = intervalMinutes;
-    }
-
-    public String getRecordType() {
-        return recordType;
-    }
-
-    public void setRecordType(String recordType) {
-        this.recordType = recordType;
-    }
 
     public String getProvider() {
         return provider;
@@ -108,5 +94,11 @@ public class Config {
         this.apiToken = apiToken;
     }
 
-    // 省略 getter/setter 和构造方法
+    public boolean isIpv6Privacy() {
+        return ipv6Privacy;
+    }
+
+    public void setIpv6Privacy(boolean ipv6Privacy) {
+        this.ipv6Privacy = ipv6Privacy;
+    }
 }

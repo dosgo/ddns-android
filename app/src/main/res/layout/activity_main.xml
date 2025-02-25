@@ -26,7 +26,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
-
             <EditText
                 android:id="@+id/etApiKey"
                 android:layout_width="match_parent"
@@ -68,53 +67,52 @@
             android:id="@+id/etDomain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="主域名（如 example.com）"/>
+            android:hint="@string/domainDesc"/>
 
         <EditText
             android:id="@+id/etSubDomain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="子域名（如 www 或 @）"/>
+            android:hint="@string/subDomainDesc"/>
 
         <!-- IP 类型选择 -->
         <CheckBox
             android:id="@+id/cbIPv4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="启用 IPv4"
+            android:text="@string/enableIPV4"
             android:checked="true"/>
 
         <CheckBox
             android:id="@+id/cbIPv6"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="启用 IPv6"/>
+            android:text="@string/enableIPV6"/>
 
-        <!-- 间隔时间 -->
-        <EditText
-            android:id="@+id/etInterval"
+        <CheckBox
+            android:id="@+id/ipv6Privacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="检查间隔（分钟）"
-            android:inputType="number"/>
+            android:text="@string/enablePrivacy"/>
+
 
         <!-- 操作按钮 -->
         <Button
             android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="保存配置"/>
+            android:text="@string/saveConfig"/>
 
         <Button
             android:id="@+id/btnToggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="启动服务"/>
+            android:text="@string/startService"/>
         <Button
             android:id="@+id/btnClearLogs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="清空日志"/>
+            android:text="@string/clearLog"/>
 
         <ScrollView
             android:layout_width="match_parent"
