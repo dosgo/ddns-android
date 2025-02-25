@@ -73,7 +73,9 @@ public class IPUtils {
         List<String> ips =  getLocalIP(Inet6Address.class);
         for (String ip : ips) {
             if (!ip.equals(filterIP)||filterIP.isEmpty()) {
-               return ip;
+                if(ip.split(":",-1).length>7){
+                    return ip;
+                }
             }
         }
         return ips.isEmpty() ? null : ips.get(0);
